@@ -112,13 +112,16 @@ if st.button("SUBMETER TESTE"):
             # 1. Lê a aba 'Dados'
             df_atual = conn.read(worksheet="Dados")
             
-            # 2. O TRUQUE DE MESTRE: Deleta as "colunas fantasmas" que causam o Erro 400
+            # 2. Deleta colunas fantasmas
             df_atual = df_atual.loc[:, ~df_atual.columns.str.contains('^Unnamed')]
             
-            # 3. Deleta linhas vazias
-            df_atual = df_atual.dropna(how="all")
+            # 3. O SEGREDO DO ALINHAMENTO: Apaga qualquer linha onde não há um 'Nome' digitado.
+            # Isso impede que o Python pule as linhas vazias pré-formatadas da sua tabela.
+            df_atual = df_atual.dropna(subset=["Nome"])
+            df_atual = df_atual[df_atual["Nome"].astype(str).str.strip() != ""]
+            df_atual = df_atual[df_atual["Nome"].astype(str).str.strip().str.lower() != "nan"]
             
-            # 4. Prepara a nova linha (Nomes idênticos à planilha)
+            # 4. Prepara a nova linha
             nova_linha = pd.DataFrame([{
                 "Nome": nome, 
                 "Setor": setor, 
@@ -129,11 +132,11 @@ if st.button("SUBMETER TESTE"):
                 "Perfil": perfil_final
             }])
             
-            # 5. Junta os dados e limpa qualquer NaN que tenha sobrado
+            # 5. Junta os dados antigos limpos com a linha nova
             df_final = pd.concat([df_atual, nova_linha], ignore_index=True)
             df_final = df_final.fillna("")
             
-            # 6. Manda de volta limpo para o Google
+            # 6. Salva de volta
             conn.update(worksheet="Dados", data=df_final)
             
             st.success("✅ Salvo com sucesso no banco de dados da Print Mais!")
