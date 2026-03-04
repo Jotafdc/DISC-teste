@@ -4,71 +4,48 @@ import plotly.express as px
 from streamlit_gsheets import GSheetsConnection
 import os
 
-# 1. CONFIGURAÇÃO DA PÁGINA E ESTILO VISUAL (CSS)
+# CONFIGURAÇÃO E ESTILO (CSS)
 st.set_page_config(page_title="DISC Print Mais", layout="wide", page_icon="📊")
 
-# Pega o caminho da logo
 diretorio_atual = os.path.dirname(os.path.abspath(__file__))
 caminho_logo = os.path.join(diretorio_atual, "image_7d6f47.png")
 
-# CSS: Fundo degradê teal-roxo, padrão de "+" e contraste das fontes
 st.markdown("""
     <style>
     .stApp {
         background: linear-gradient(135deg, #0b1c24, #1a2a40, #2d1b33);
-        background-image: 
-            radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-            linear-gradient(135deg, #0b1c24, #1a2a40, #2d1b33);
+        background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(135deg, #0b1c24, #1a2a40, #2d1b33);
         background-size: 40px 40px, 100% 100%;
         color: white !important;
     }
-
     div[data-testid="stVerticalBlock"] > div {
         background: rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid rgba(0, 210, 255, 0.4);
-        margin-bottom: 15px;
+        padding: 20px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.4); margin-bottom: 15px;
     }
-
-    /* Forçar contraste branco em todos os textos */
-    .stRadio > label, h1, h2, h3, p, label, .stMarkdown { 
-        color: #ffffff !important; 
-        font-weight: bold !important; 
-    }
-    
-    div[role="radiogroup"] label { color: #ffffff !important; }
-
+    .stRadio > label, h1, h2, h3, p, label { color: #ffffff !important; font-weight: bold !important; }
     .stButton > button {
-        background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-        color: white !important;
-        font-weight: bold;
-        width: 100%;
-        border-radius: 8px;
-        height: 3.5em;
-        font-size: 1.2em;
-        border: none;
-        box-shadow: 0px 4px 15px rgba(0, 210, 255, 0.4);
+        background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white !important;
+        font-weight: bold; width: 100%; border-radius: 8px; height: 3.5em; font-size: 1.2em;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. CABEÇALHO
+# CABEÇALHO
 col_l1, col_l2, col_l3 = st.columns([1, 1, 1])
 with col_l2:
-    if os.path.exists(caminho_logo):
+    if os.path.exists(caminho_logo): 
         st.image(caminho_logo, width=150)
     st.title("PERFIL DE PERSONALIDADE")
 
-# 3. IDENTIFICAÇÃO
+# IDENTIFICAÇÃO
 with st.container():
     c1, c2 = st.columns(2)
-    nome = c1.text_input("Nome Completo", placeholder="Digite aqui...")
-    setor = c2.text_input("Setor", placeholder="Seu departamento...")
+    nome = c1.text_input("Nome Completo", placeholder="Seu nome...")
+    setor = c2.text_input("Setor", placeholder="Seu setor...")
 
 st.markdown("---")
 
-# 4. QUESTÕES (Mapeamento: D, I, S, C)
+# QUESTÕES (D, I, S, C)
 perguntas = [
     {"id": 1, "texto": "EU SOU:", "opcoes": {"I": "Idealista, criativo e visionário.", "S": "Divertido, espiritual e benéfico.", "C": "Confiável, minucioso e previsível.", "D": "Focado, determinado e persistente."}},
     {"id": 2, "texto": "EU GOSTO DE:", "opcoes": {"D": "Ser piloto.", "S": "Conversar com os passageiros.", "C": "Planejar a viagem.", "I": "Explorar novas rotas."}},
@@ -97,24 +74,21 @@ perguntas = [
     {"id": 25, "texto": "EU PENSO QUE:", "opcoes": {"I": "Não é fácil ficar encurralado.", "C": "É preferível olhar, antes de pular.", "S": "Duas cabeças pensam melhor do que uma.", "D": "Se não sabe competir, fique em casa."}},
 ]
 
-# 5. LAYOUT 3 COLUNAS
+# LAYOUT COLUNAS
 respostas = {}
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.subheader("📍 CATEGORIA I")
-    for p in perguntas[0:8]:
-        respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
+    st.subheader("📍 PARTE I")
+    for p in perguntas[0:8]: respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
 with col2:
-    st.subheader("📍 CATEGORIA II")
-    for p in perguntas[8:16]:
-        respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
+    st.subheader("📍 PARTE II")
+    for p in perguntas[8:16]: respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
 with col3:
-    st.subheader("📍 CATEGORIA III")
-    for p in perguntas[16:25]:
-        respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
+    st.subheader("📍 PARTE III")
+    for p in perguntas[16:25]: respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
 
-# 6. PROCESSAMENTO
+# PROCESSAMENTO E ENVIO
 st.write("---")
 if st.button("SUBMETER TESTE"):
     if not nome or not setor or None in respostas.values():
@@ -127,25 +101,30 @@ if st.button("SUBMETER TESTE"):
             scores[letra] += 1
         
         pct = {k: f"{round((v/25)*100, 1)}%" for k, v in scores.items()}
-        max_v = max(scores.values())
-        perfil_final = " & ".join([k for k, v in scores.items() if v == max_v])
+        perfil_final = " & ".join([k for k, v in scores.items() if v == max(scores.values())])
 
         st.balloons()
-        st.header(f"Seu Perfil: {perfil_final}")
+        st.header(f"Resultado: {perfil_final}")
 
-        # 7. SALVAR NO GSHEETS (CABEÇALHOS IGUAIS À SUA PLANILHA)
         try:
+            # Conecta na planilha usando os Secrets
             conn = st.connection("gsheets", type=GSheetsConnection)
-            df_atual = conn.read(worksheet="Página1")
             
+            # Lê a aba que agora se chama "Dados" (sem acento)
+            df_atual = conn.read(worksheet="Dados")
+            
+            # Cria a nova linha com a coluna "Perfil" (sem acento)
             nova_linha = pd.DataFrame([{
                 "Nome": nome, "Setor": setor, 
                 "D": pct["D"], "I": pct["I"], "S": pct["S"], "C": pct["C"], 
-                "Perfil Comportamental": perfil_final
+                "Perfil": perfil_final
             }])
             
+            # Atualiza
             df_final = pd.concat([df_atual, nova_linha], ignore_index=True)
-            conn.update(worksheet="Página1", data=df_final)
-            st.toast("✅ Resultados enviados com sucesso!")
+            conn.update(worksheet="Dados", data=df_final)
+            st.success("✅ Salvo com sucesso no banco de dados da Print Mais!")
+            
         except Exception as e:
-            st.error(f"Erro ao salvar: {e}")
+            st.error("Erro técnico detalhado:")
+            st.code(e)
