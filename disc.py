@@ -107,26 +107,37 @@ if st.button("SUBMETER TESTE"):
         st.header(f"Resultado: {perfil_final}")
 
         try:
+            # Conecta na planilha
             conn = st.connection("gsheets", type=GSheetsConnection)
             
-            # 1. Lê a aba 'Dados' e LIMPA as linhas vazias (o segredo pro erro 400 sumir)
+            # 1. Lê a aba 'Dados'
             df_atual = conn.read(worksheet="Dados")
+            
+            # 2. O SEGREDO ESTÁ AQUI: Limpa as linhas vazias que causam o erro 400
             df_atual = df_atual.dropna(how="all")
             
-            # 2. Cria a nova linha
+            # 3. Cria a nova linha
             nova_linha = pd.DataFrame([{
-                "Nome": nome, "Setor": setor, 
-                "D": pct["D"], "I": pct["I"], "S": pct["S"], "C": pct["C"], 
+                "Nome": nome, 
+                "Setor": setor, 
+                "D": pct["D"], 
+                "I": pct["I"], 
+                "S": pct["S"], 
+                "C": pct["C"], 
                 "Perfil": perfil_final
             }])
             
-            # 3. Junta os dados antigos com o novo
+            # 4. Junta os dados antigos com o novo
             df_final = pd.concat([df_atual, nova_linha], ignore_index=True)
             
-            # 4. Envia de volta
+            # 5. Preenche qualquer NaN residual com texto vazio (proteção extra)
+            df_final = df_final.fillna("")
+            
+            # 6. Envia de volta para o Google Sheets
             conn.update(worksheet="Dados", data=df_final)
             
             st.success("✅ Salvo com sucesso no banco de dados da Print Mais!")
+            st.balloons()
             
         except Exception as e:
             st.error("Erro técnico detalhado:")
