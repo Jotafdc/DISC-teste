@@ -107,22 +107,25 @@ if st.button("SUBMETER TESTE"):
         st.header(f"Resultado: {perfil_final}")
 
         try:
-            # Conecta na planilha usando os Secrets
             conn = st.connection("gsheets", type=GSheetsConnection)
             
-            # Lê a aba que agora se chama "Dados" (sem acento)
+            # 1. Lê a aba 'Dados' e LIMPA as linhas vazias (o segredo pro erro 400 sumir)
             df_atual = conn.read(worksheet="Dados")
+            df_atual = df_atual.dropna(how="all")
             
-            # Cria a nova linha com a coluna "Perfil" (sem acento)
+            # 2. Cria a nova linha
             nova_linha = pd.DataFrame([{
                 "Nome": nome, "Setor": setor, 
                 "D": pct["D"], "I": pct["I"], "S": pct["S"], "C": pct["C"], 
                 "Perfil": perfil_final
             }])
             
-            # Atualiza
+            # 3. Junta os dados antigos com o novo
             df_final = pd.concat([df_atual, nova_linha], ignore_index=True)
+            
+            # 4. Envia de volta
             conn.update(worksheet="Dados", data=df_final)
+            
             st.success("✅ Salvo com sucesso no banco de dados da Print Mais!")
             
         except Exception as e:
