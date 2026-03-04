@@ -11,10 +11,9 @@ st.set_page_config(page_title="DISC Print Mais", layout="wide", page_icon="📊"
 diretorio_atual = os.path.dirname(os.path.abspath(__file__))
 caminho_logo = os.path.join(diretorio_atual, "image_7d6f47.png")
 
-# CSS para o fundo degradê, o padrão de "+" e contraste das fontes
+# CSS: Fundo degradê teal-roxo, padrão de "+" e contraste das fontes
 st.markdown("""
     <style>
-    /* Fundo degradê e padrão de "+" */
     .stApp {
         background: linear-gradient(135deg, #0b1c24, #1a2a40, #2d1b33);
         background-image: 
@@ -24,23 +23,25 @@ st.markdown("""
         color: white !important;
     }
 
-    /* Estilo dos blocos de pergunta */
     div[data-testid="stVerticalBlock"] > div {
-        background: rgba(255, 255, 255, 0.08);
-        padding: 18px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
         border-radius: 12px;
-        border: 1px solid rgba(0, 210, 255, 0.3);
-        margin-bottom: 12px;
+        border: 1px solid rgba(0, 210, 255, 0.4);
+        margin-bottom: 15px;
     }
 
-    /* Estilo dos Textos e Radios */
-    .stRadio > label { color: #ffffff !important; font-weight: bold; font-size: 16px; }
-    h1, h2, h3, p, label { color: white !important; }
+    /* Forçar contraste branco em todos os textos */
+    .stRadio > label, h1, h2, h3, p, label, .stMarkdown { 
+        color: #ffffff !important; 
+        font-weight: bold !important; 
+    }
     
-    /* Botão de Submissão */
+    div[role="radiogroup"] label { color: #ffffff !important; }
+
     .stButton > button {
         background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-        color: white;
+        color: white !important;
         font-weight: bold;
         width: 100%;
         border-radius: 8px;
@@ -52,24 +53,22 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. CABEÇALHO COM LOGO DA PRINT MAIS
+# 2. CABEÇALHO
 col_l1, col_l2, col_l3 = st.columns([1, 1, 1])
 with col_l2:
     if os.path.exists(caminho_logo):
         st.image(caminho_logo, width=150)
     st.title("PERFIL DE PERSONALIDADE")
-    st.markdown("<p style='text-align:center;'>Responda com sinceridade. Não há respostas certas ou erradas.</p>", unsafe_allow_html=True)
 
-# 3. IDENTIFICAÇÃO DO FUNCIONÁRIO
+# 3. IDENTIFICAÇÃO
 with st.container():
     c1, c2 = st.columns(2)
-    nome = c1.text_input("Nome Completo", placeholder="Seu nome...")
+    nome = c1.text_input("Nome Completo", placeholder="Digite aqui...")
     setor = c2.text_input("Setor", placeholder="Seu departamento...")
 
 st.markdown("---")
 
-# 4. TRANSCRIÇÃO DAS 25 QUESTÕES (Mapeamento: D, I, E->S, A->C)
-# S = Estabilidade (original E) | C = Conformidade (original A)
+# 4. QUESTÕES (Mapeamento: D, I, S, C)
 perguntas = [
     {"id": 1, "texto": "EU SOU:", "opcoes": {"I": "Idealista, criativo e visionário.", "S": "Divertido, espiritual e benéfico.", "C": "Confiável, minucioso e previsível.", "D": "Focado, determinado e persistente."}},
     {"id": 2, "texto": "EU GOSTO DE:", "opcoes": {"D": "Ser piloto.", "S": "Conversar com os passageiros.", "C": "Planejar a viagem.", "I": "Explorar novas rotas."}},
@@ -98,7 +97,7 @@ perguntas = [
     {"id": 25, "texto": "EU PENSO QUE:", "opcoes": {"I": "Não é fácil ficar encurralado.", "C": "É preferível olhar, antes de pular.", "S": "Duas cabeças pensam melhor do que uma.", "D": "Se não sabe competir, fique em casa."}},
 ]
 
-# 5. ORGANIZAÇÃO EM 3 COLUNAS (CATEGORIAS)
+# 5. LAYOUT 3 COLUNAS
 respostas = {}
 col1, col2, col3 = st.columns(3)
 
@@ -106,72 +105,47 @@ with col1:
     st.subheader("📍 CATEGORIA I")
     for p in perguntas[0:8]:
         respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
-
 with col2:
     st.subheader("📍 CATEGORIA II")
     for p in perguntas[8:16]:
         respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
-
 with col3:
     st.subheader("📍 CATEGORIA III")
     for p in perguntas[16:25]:
         respostas[p['id']] = st.radio(f"**{p['id']} - {p['texto']}**", options=list(p['opcoes'].values()), index=None, key=f"q{p['id']}")
 
-# 6. FEEDBACK DOS PERFIS
-descricoes = {
-    "D": "🔴 **Dominância (Executor):** Decidido, competitivo e focado em resultados rápidos.",
-    "I": "🟡 **Influência (Comunicador):** Entusiasta, persuasivo e focado em pessoas.",
-    "S": "🔵 **Estabilidade (Planejador):** Paciente, bom ouvinte e focado em harmonia.",
-    "C": "🟢 **Conformidade (Analista):** Detalhista, preciso e focado na qualidade e regras."
-}
-
-# 7. PROCESSAMENTO E ENVIO
+# 6. PROCESSAMENTO
 st.write("---")
 if st.button("SUBMETER TESTE"):
     if not nome or not setor or None in respostas.values():
-        st.error("⚠️ Preencha seus dados e responda todas as questões para finalizar.")
+        st.error("⚠️ Preencha nome, setor e todas as questões.")
     else:
-        # Cálculo dos Pontos
-        total = 25
         scores = {"D": 0, "I": 0, "S": 0, "C": 0}
         for q_id, resp in respostas.items():
             item = next(x for x in perguntas if x["id"] == q_id)
             letra = [k for k, v in item['opcoes'].items() if v == resp][0]
             scores[letra] += 1
         
-        # Porcentagens
-        pct = {k: round((v/total)*100, 1) for k, v in scores.items()}
-        top_val = max(scores.values())
-        perfil_final = " & ".join([k for k, v in scores.items() if v == top_val])
+        pct = {k: f"{round((v/25)*100, 1)}%" for k, v in scores.items()}
+        max_v = max(scores.values())
+        perfil_final = " & ".join([k for k, v in scores.items() if v == max_v])
 
-        # Resultados Visuais
         st.balloons()
-        st.markdown(f"## Resultado de {nome}: {perfil_final}")
-        
-        df_res = pd.DataFrame({
-            "Perfil": ["Dominância", "Influência", "Estabilidade", "Conformidade"],
-            "Porcentagem (%)": [pct["D"], pct["I"], pct["S"], pct["C"]]
-        })
-        
-        fig = px.bar(df_res, x="Perfil", y="Porcentagem (%)", color="Perfil", text_auto=True,
-                     color_discrete_map={"Dominância": "#e74c3c", "Influência": "#f1c40f", "Estabilidade": "#3498db", "Conformidade": "#2ecc71"})
-        st.plotly_chart(fig, use_container_width=True)
+        st.header(f"Seu Perfil: {perfil_final}")
 
-        for p in [k for k, v in scores.items() if v == top_val]:
-            st.info(descricoes[p])
-
-        # 8. SALVAR NO GOOGLE SHEETS
+        # 7. SALVAR NO GSHEETS (CABEÇALHOS IGUAIS À SUA PLANILHA)
         try:
             conn = st.connection("gsheets", type=GSheetsConnection)
-            df_atual = conn.read()
+            df_atual = conn.read(worksheet="Página1")
+            
             nova_linha = pd.DataFrame([{
                 "Nome": nome, "Setor": setor, 
-                "D%": f"{pct['D']}%", "I%": f"{pct['I']}%", 
-                "S%": f"{pct['S']}%", "C%": f"{pct['C']}%", 
-                "Perfil": perfil_final
+                "D": pct["D"], "I": pct["I"], "S": pct["S"], "C": pct["C"], 
+                "Perfil Comportamental": perfil_final
             }])
+            
             df_final = pd.concat([df_atual, nova_linha], ignore_index=True)
-            conn.update(data=df_final)
-            st.toast("✅ Dados salvos na planilha da Print Mais!")
-        except:
-            st.warning("⚠️ Não foi possível salvar no Sheets. Verifique o Secrets.")
+            conn.update(worksheet="Página1", data=df_final)
+            st.toast("✅ Resultados enviados com sucesso!")
+        except Exception as e:
+            st.error(f"Erro ao salvar: {e}")
