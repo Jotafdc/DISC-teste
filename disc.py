@@ -38,7 +38,7 @@ with col_l2:
     st.title("PERFIL DE PERSONALIDADE")
     st.markdown("<p style='text-align:center;'>Responda com sinceridade. Escolha a opção que melhor o descreve.</p>", unsafe_allow_html=True)
 
-# 3. IDENTIFICAÇÃO (Com Filiais Atualizadas)
+# 3. IDENTIFICAÇÃO (Com Filiais Atualizadas e Lógica de Vaga)
 with st.container():
     tipo_perfil = st.radio("Você é:", ["Colaborador", "Entrevistado"], horizontal=True)
     
@@ -101,7 +101,7 @@ perguntas = [
     {"id": 6, "texto": "EU PREFIRO AMBIENTES QUE SEJAM:", "opcoes": {
         "S": "Seguros, amigáveis e tranquilos.",
         "I": "Divertidos, agitados e com muita gente.",
-        "C": "Estruturados, silenciosos e bem organizados.",
+        "C": "Estruturados, silenciosos e bem organizedos.",
         "D": "Desafiadores, competitivos e com muita liberdade."}},
         
     {"id": 7, "texto": "QUANDO CONVERSO COM ALGUÉM, EU GERALMENTE:", "opcoes": {
@@ -236,7 +236,7 @@ with col3:
 # 6. PROCESSAMENTO E ENVIO
 st.write("---")
 if st.button("SUBMETER TESTE"):
-    # Atualizamos a validação para exigir o Cargo (e o Setor se for colaborador)
+    # Validação para exigir Cargo e Setor quando aplicável
     if not nome or not cargo or (tipo_perfil == "Colaborador" and not setor) or None in respostas.values():
         st.error("⚠️ Preencha o seu nome, local, setor/cargo e todas as 25 questões.")
     else:
@@ -261,11 +261,11 @@ if st.button("SUBMETER TESTE"):
                      color_discrete_map={"Dominância": "#e74c3c", "Influência": "#f1c40f", "Estabilidade": "#3498db", "Conformidade": "#2ecc71"})
         st.plotly_chart(fig, use_container_width=True)
 
-        # 7. GUARDAR NO GOOGLE SHEETS COM SEGURANÇA
+        # 7. GUARDAR NO GOOGLE SHEETS COM SEGURANÇA E MAPEAMENTO EXATO
         try:
             conn = st.connection("gsheets", type=GSheetsConnection)
             
-            # Lê os dados ao vivo (ignorando a cache)
+            # Lê os dados ao vivo
             df_atual = conn.read(worksheet="Dados", ttl=0)
             
             # Limpa colunas e linhas residuais para manter a tabela limpa
@@ -274,14 +274,17 @@ if st.button("SUBMETER TESTE"):
             df_atual = df_atual[df_atual["Nome"].astype(str).str.strip() != ""]
             df_atual = df_atual[df_atual["Nome"].astype(str).str.strip().str.lower() != "nan"]
             
-            # Nova linha mapeada exatamente com os novos cabeçalhos
+            # Nova linha mapeada exatamente com as colunas reais da folha de cálculo
             nova_linha = pd.DataFrame([{
                 "Nome": nome, 
-                "Estado": estado,
                 "Setor": setor, 
-                "Cargo": cargo,
-                "D": pct["D"], "I": pct["I"], "S": pct["S"], "C": pct["C"], 
-                "Perfil": perfil_final
+                "D": pct["D"], 
+                "I": pct["I"], 
+                "S": pct["S"], 
+                "C": pct["C"], 
+                "Perfil": perfil_final,
+                "Local onde atuo": estado,
+                "Cargo": cargo
             }])
             
             df_final = pd.concat([df_atual, nova_linha], ignore_index=True)
@@ -289,7 +292,7 @@ if st.button("SUBMETER TESTE"):
             
             # Guarda as atualizações na base de dados
             conn.update(worksheet="Dados", data=df_final)
-            st.success("✅ Resultados guardados com sucesso na base de dados!")
+            st.success("✅ Resultados guardados com sucesso na base de dados da Print Mais!")
             
         except Exception as e:
             st.error("Erro técnico detalhado:")
