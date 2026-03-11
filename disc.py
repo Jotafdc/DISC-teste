@@ -38,13 +38,21 @@ with col_l2:
     st.title("PERFIL DE PERSONALIDADE")
     st.markdown("<p style='text-align:center;'>Responda com sinceridade. Escolha a opção que melhor o descreve.</p>", unsafe_allow_html=True)
 
-# 3. IDENTIFICAÇÃO (Com Estado, Setor e Cargo)
+# 3. IDENTIFICAÇÃO (Com Filiais Atualizadas)
 with st.container():
     tipo_perfil = st.radio("Você é:", ["Colaborador", "Entrevistado"], horizontal=True)
     
     c1, c2 = st.columns(2)
     nome = c1.text_input("Nome Completo", placeholder="O seu nome...")
-    estado = c2.selectbox("Estado (Filial)", ["PB", "PE", "RN"])
+    
+    # Lista atualizada com Matriz e Filiais
+    estado = c2.selectbox("Local de Atuação", [
+        "João Pessoa, matriz", 
+        "Patos filial", 
+        "RN filial", 
+        "PE filial", 
+        "AL filial"
+    ])
     
     # Se for colaborador, exibe Setor e Função
     if tipo_perfil == "Colaborador":
@@ -230,7 +238,7 @@ st.write("---")
 if st.button("SUBMETER TESTE"):
     # Atualizamos a validação para exigir o Cargo (e o Setor se for colaborador)
     if not nome or not cargo or (tipo_perfil == "Colaborador" and not setor) or None in respostas.values():
-        st.error("⚠️ Preencha o seu nome, estado, setor/cargo e todas as 25 questões.")
+        st.error("⚠️ Preencha o seu nome, local, setor/cargo e todas as 25 questões.")
     else:
         scores = {"D": 0, "I": 0, "S": 0, "C": 0}
         for q_id, resp in respostas.items():
