@@ -36,21 +36,22 @@ with col_l2:
     if os.path.exists(caminho_logo): 
         st.image(caminho_logo, width=150)
     st.title("PERFIL DE PERSONALIDADE")
-    st.markdown("<p style='text-align:center;'>Responda com sinceridade. Escolha a opção que melhor descreve você.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center;'>Responda com sinceridade. Escolha a opção que melhor o descreve.</p>", unsafe_allow_html=True)
 
-# 3. IDENTIFICAÇÃO (Com lógica de Colaborador vs Entrevistado)
+# 3. IDENTIFICAÇÃO (Com lógica dinâmica de Vaga)
 with st.container():
     tipo_perfil = st.radio("Você é:", ["Colaborador", "Entrevistado"], horizontal=True)
     
     c1, c2 = st.columns(2)
     nome = c1.text_input("Nome Completo", placeholder="O seu nome...")
     
-    # O campo do setor só aparece se a pessoa for Colaborador
+    # O campo da direita muda dependendo de quem está a responder
     if tipo_perfil == "Colaborador":
         setor = c2.text_input("Setor", placeholder="O seu setor...")
     else:
-        # Fica invisível no ecrã, mas preenche a tabela automaticamente
-        setor = "Entrevistado"
+        vaga = c2.text_input("Vaga Desejada", placeholder="Ex: Vendedor, Atendimento...")
+        # Se preencher a vaga, o sistema cria o rótulo completo para a folha de cálculo
+        setor = f"Entrevistado - {vaga}" if vaga else ""
 
 st.markdown("---")
 
@@ -224,9 +225,9 @@ with col3:
 # 6. PROCESSAMENTO E ENVIO
 st.write("---")
 if st.button("SUBMETER TESTE"):
-    # Validação rigorosa: exige o nome, as respostas e, se for colaborador, exige o setor.
-    if not nome or (tipo_perfil == "Colaborador" and not setor) or None in respostas.values():
-        st.error("⚠️ Preencha o seu nome, setor (se aplicável) e todas as 25 questões.")
+    # Como o campo 'setor' agora guarda tanto o setor quanto a vaga, a validação fica super simples
+    if not nome or not setor or None in respostas.values():
+        st.error("⚠️ Preencha o seu nome, setor/vaga e todas as 25 questões.")
     else:
         scores = {"D": 0, "I": 0, "S": 0, "C": 0}
         for q_id, resp in respostas.items():
@@ -262,7 +263,7 @@ if st.button("SUBMETER TESTE"):
             df_atual = df_atual[df_atual["Nome"].astype(str).str.strip() != ""]
             df_atual = df_atual[df_atual["Nome"].astype(str).str.strip().str.lower() != "nan"]
             
-            # Nova linha formatada (se for entrevistado, o setor vai preenchido como "Entrevistado")
+            # Nova linha formatada (se for entrevistado, o setor vai preenchido com a vaga)
             nova_linha = pd.DataFrame([{
                 "Nome": nome, "Setor": setor, 
                 "D": pct["D"], "I": pct["I"], "S": pct["S"], "C": pct["C"], 
