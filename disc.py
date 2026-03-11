@@ -38,11 +38,19 @@ with col_l2:
     st.title("PERFIL DE PERSONALIDADE")
     st.markdown("<p style='text-align:center;'>Responda com sinceridade. Escolha a opção que melhor descreve você.</p>", unsafe_allow_html=True)
 
-# 3. IDENTIFICAÇÃO
+# 3. IDENTIFICAÇÃO (Com lógica de Colaborador vs Entrevistado)
 with st.container():
+    tipo_perfil = st.radio("Você é:", ["Colaborador", "Entrevistado"], horizontal=True)
+    
     c1, c2 = st.columns(2)
-    nome = c1.text_input("Nome Completo", placeholder="Seu nome...")
-    setor = c2.text_input("Setor", placeholder="Seu setor...")
+    nome = c1.text_input("Nome Completo", placeholder="O seu nome...")
+    
+    # O campo do setor só aparece se a pessoa for Colaborador
+    if tipo_perfil == "Colaborador":
+        setor = c2.text_input("Setor", placeholder="O seu setor...")
+    else:
+        # Fica invisível no ecrã, mas preenche a tabela automaticamente
+        setor = "Entrevistado"
 
 st.markdown("---")
 
@@ -216,8 +224,9 @@ with col3:
 # 6. PROCESSAMENTO E ENVIO
 st.write("---")
 if st.button("SUBMETER TESTE"):
-    if not nome or not setor or None in respostas.values():
-        st.error("⚠️ Preencha nome, setor e todas as 25 questões.")
+    # Validação rigorosa: exige o nome, as respostas e, se for colaborador, exige o setor.
+    if not nome or (tipo_perfil == "Colaborador" and not setor) or None in respostas.values():
+        st.error("⚠️ Preencha o seu nome, setor (se aplicável) e todas as 25 questões.")
     else:
         scores = {"D": 0, "I": 0, "S": 0, "C": 0}
         for q_id, resp in respostas.items():
@@ -228,9 +237,9 @@ if st.button("SUBMETER TESTE"):
         pct = {k: f"{round((v/25)*100, 1)}%" for k, v in scores.items()}
         perfil_final = " & ".join([k for k, v in scores.items() if v == max(scores.values())])
 
-        # Exibe Gráfico Visual para o Usuário
+        # Exibe Gráfico Visual para o Utilizador
         st.balloons()
-        st.header(f"Seu Perfil Principal: {perfil_final}")
+        st.header(f"O Seu Perfil Principal: {perfil_final}")
         
         df_res = pd.DataFrame({
             "Perfil": ["Dominância", "Influência", "Estabilidade", "Conformidade"],
@@ -240,20 +249,20 @@ if st.button("SUBMETER TESTE"):
                      color_discrete_map={"Dominância": "#e74c3c", "Influência": "#f1c40f", "Estabilidade": "#3498db", "Conformidade": "#2ecc71"})
         st.plotly_chart(fig, use_container_width=True)
 
-        # 7. SALVAR NO GOOGLE SHEETS COM SEGURANÇA E ALINHAMENTO
+        # 7. GUARDAR NO GOOGLE SHEETS COM SEGURANÇA
         try:
             conn = st.connection("gsheets", type=GSheetsConnection)
             
-            # Lê os dados ao vivo (ignorando o cache antigo)
+            # Lê os dados ao vivo (ignorando a cache)
             df_atual = conn.read(worksheet="Dados", ttl=0)
             
-            # Limpa colunas e linhas residuais do Sheets
+            # Limpa colunas e linhas residuais para manter a tabela limpa
             df_atual = df_atual.loc[:, ~df_atual.columns.str.contains('^Unnamed')]
             df_atual = df_atual.dropna(subset=["Nome"])
             df_atual = df_atual[df_atual["Nome"].astype(str).str.strip() != ""]
             df_atual = df_atual[df_atual["Nome"].astype(str).str.strip().str.lower() != "nan"]
             
-            # Nova linha formatada exatamente como o cabeçalho
+            # Nova linha formatada (se for entrevistado, o setor vai preenchido como "Entrevistado")
             nova_linha = pd.DataFrame([{
                 "Nome": nome, "Setor": setor, 
                 "D": pct["D"], "I": pct["I"], "S": pct["S"], "C": pct["C"], 
@@ -263,9 +272,9 @@ if st.button("SUBMETER TESTE"):
             df_final = pd.concat([df_atual, nova_linha], ignore_index=True)
             df_final = df_final.fillna("")
             
-            # Salva
+            # Guarda as atualizações na base de dados
             conn.update(worksheet="Dados", data=df_final)
-            st.success("✅ Resultados enviados com sucesso para o banco de dados da Print Mais!")
+            st.success("✅ Resultados guardados com sucesso na base de dados!")
             
         except Exception as e:
             st.error("Erro técnico detalhado:")
